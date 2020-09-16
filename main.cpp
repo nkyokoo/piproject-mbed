@@ -1,55 +1,66 @@
 #include "mbed.h"
+#include "mbed_trace.h"
+#include "EthernetInterface.h"
+#include "LCD_DISCO_F746NG.h"
+#include "MbedJSONValue.h"
+#include "temperature.h"
 
 // Network interface
-NetworkInterface *net;
+EthernetInterface net;
+ temperature temp = temperature();
 
-// Socket demo
-int main() {
-    int remaining;
-    int rcount;
-    char *p;
-    char buffer[256];
+void threadtemp() {
+    temp.runSensor();
+}
+int main(void)
+{
+
     nsapi_size_or_error_t result;
-
-    // Bring up the ethernet interface
-    printf("Mbed OS Socket example\n");
-
-#ifdef MBED_MAJOR_VERSION
-    printf("Mbed OS version: %d.%d.%d\n\n", MBED_MAJOR_VERSION, MBED_MINOR_VERSION, MBED_PATCH_VERSION);
-#endif
-
-    net = NetworkInterface::get_default_instance();
-
-    if (!net) {
-        printf("Error! No network inteface found.\n");
-        return 0;
-    }
-
-    result = net->connect();
-    if (result != 0) {
-        printf("Error! net->connect() returned: %d\n", result);
-        return result;
-    }
+    LCD_DISCO_F746NG lcd;
+    Thread thread;
+    char text[30];
+    result = net.connect();
+    printf("%d",result);
 
     // Show the network address
     SocketAddress a;
-    net->get_ip_address(&a);
+    net.get_ip_address(&a);
     printf("IP address: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
-    net->get_netmask(&a);
-    printf("Netmask: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
-    net->get_gateway(&a);
-    printf("Gateway: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
+    sprintf(text, "IP: %s",  a.get_ip_address() ? a.get_ip_address() : "None"); 
+    lcd.DisplayStringAt(0, LINE(6), (uint8_t *)text, CENTER_MODE);
 
-    // Open a socket on the network interface, and create a TCP connection to ifconfig.io
+    // Open a socket on the network interface
     TCPSocket socket;
-    // Send a simple http request
+    socket.open(&net);
+    a.set_ip_address("10.130.54.33");
+    a.set_port(2080);
+     result = socket.connect(a);
+     if(result < 0){
+        printf("Error! socket->open() returned: %d\n", result);
+        return result;     
+    }
+     
 
-    result = socket.open(net);
+    
+        // Send json.
+    MbedJSONValue data;
+   std::string s;
+thread.start(threadtemp);
+ while(true){
+        //fill the object
+
+   data["type"] = "temp";
+   data["value"] = temp.getTemp();
+   char id[30];
+   sprintf(id, "f746g@%s",a.get_ip_address());
+   data["mbed_controller_id"] = id;
+
+   //serialize it into a JSON string
+   s = data.serialize();
+     int scount = socket.send(s.c_str(), s.length());
+    printf("sent %s",s.c_str());
+ }
 
 
-    socket.send("s",10);
 
-
-
- 
 }
