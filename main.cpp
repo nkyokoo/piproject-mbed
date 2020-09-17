@@ -10,15 +10,17 @@
 EthernetInterface net;
 temperature temp = temperature();
 
-void threadtemp() { temp.runSensor(); }
+void threadtemp() {
+     temp.runSensor(); 
+}
 int main(void) {
 
   nsapi_size_or_error_t result;
   LCD_DISCO_F746NG lcd;
   Thread thread;
   char text[30];
-  result = net.connect();
-  printf("%d", result);
+/*  net.connect();
+  printf("mbed controller");
 
   // Show the network address
   SocketAddress a;
@@ -37,16 +39,17 @@ int main(void) {
     printf("Error! socket->open() returned: %d\n", result);
     return result;
   }
+  */ 
 
   thread.start(threadtemp);
 
   // fill the object
-  MbedJSONValue data;
+ /*  MbedJSONValue data;
   std::string s;
   data["type"] = "temp";
   data["value"] = temp.getTemp();
   char id[30];
-  sprintf(id, "f746g@%s", a.get_ip_address());
+  sprintf(text, "f746g@%s", a.get_ip_address() ? a.get_ip_address() : "None");
   data["mbed_controller_id"] = id;
 
   // serialize it into a JSON string
@@ -54,4 +57,7 @@ int main(void) {
   // Send json.
   int scount = socket.send(s.c_str(), s.length());
   printf("sent data");
+  socket.close();
+  net.disconnect();
+  */
 }

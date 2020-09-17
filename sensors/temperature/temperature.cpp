@@ -10,26 +10,32 @@
 
 #include "mbed.h"
 #include "LCD_DISCO_F746NG.h"
-#include "Grove_temperature.h"
 #include "temperature.h"
 #include <string>
 using namespace std;
 
-Grove_temperature sensor(A0);
+AnalogIn tempSensor(A0);
 temperature::temperature()
 {
-    tempType = 'c';
 }
 
  
 void temperature::runSensor()
 {
-    tempType = 'c';
     while (1)
     {
 
-            globalTemperature = sensor.getTemperature(); // the default output from the library is celsius
-        
+            const int B = 4275;               // B value of the thermistor
+            const int R0 = 100000;            // R0 = 100k
+            float R = 1.0f/tempSensor.read() - 1.0f;
+            R = R0*R;
+
+            float temperature = 1.0/(log(R/R0)/B+1/298.15)-273.15; // convert to temperature via datasheet
+            globalTemperature = temperature;
+            char text[30];
+            sprintf(text, "%f", globalTemperature);
+            lcd.DisplayStringAt(0, LINE(6), (uint8_t *)text, CENTER_MODE);
+
             ThisThread::sleep_for(5);
 
         

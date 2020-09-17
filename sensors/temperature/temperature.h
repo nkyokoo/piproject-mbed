@@ -32,10 +32,7 @@ public:
 
 private:
     LCD_DISCO_F746NG lcd;
-    bool showing;
-    char tempType;
     float globalTemperature;
-    bool isHex;
-    char text[30];
+ 
 
 };
