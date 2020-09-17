@@ -9,9 +9,9 @@
 #include "mbed.h"
 #include "LCD_DISCO_F746NG.h"
 #include "sound.h"
-#include "utils.h"
+#include "ProjectUtils.h"
 
-utils util = utils();
+ProjectUtils util = ProjectUtils();
 
 AnalogIn sound(A2);
 

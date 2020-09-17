@@ -6,18 +6,18 @@
  * file offers logic for the utils class 
  *
  */
-#include "utils.h"
+#include "ProjectUtils.h"
 #include <mbed.h>
 #include <string>
 
-void utils::resetSoundLevel(){
+void ProjectUtils::resetSoundLevel(){
     sum = 0;
     average = 0;
     decibels = 0;
 }
 
 
-float utils::calculateSoundLevel(float rawValue){
+float ProjectUtils::calculateSoundLevel(float rawValue){
     resetSoundLevel();
     
     for(int i=0;i<1000;i++){

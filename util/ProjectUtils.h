@@ -12,7 +12,7 @@
  
   #include <string>
  // using namespace std;  
- class utils{ 
+ class ProjectUtils{ 
     public:
       /**
        * resets the sound values

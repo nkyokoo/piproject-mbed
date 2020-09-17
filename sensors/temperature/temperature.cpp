@@ -13,7 +13,6 @@
 #include "Grove_temperature.h"
 #include "temperature.h"
 #include <string>
-#include "utils.h"
 using namespace std;
 
 Grove_temperature sensor(A0);
