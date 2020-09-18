@@ -7,7 +7,7 @@
 
 
 // Network interface
-EthernetInterface net;
+//EthernetInterface net;
 temperature temp = temperature();
 
 void threadtemp() {
@@ -60,8 +60,8 @@ int main(void) {
   socket.close();
   net.disconnect();
   */
-  while(true){
+ // while(true){
    // printf("%f \n",temp.getTemp());
     //ThisThread::sleep_for(5s);
-  }
+  //}
 }
