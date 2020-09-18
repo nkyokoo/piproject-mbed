@@ -48,7 +48,7 @@ int main(void) {
   std::string s;
   data["type"] = "temp";
   data["value"] = temp.getTemp();
-  char id[30];
+  char id[30];   ½½½ 
   sprintf(text, "f746g@%s", a.get_ip_address() ? a.get_ip_address() : "None");
   data["mbed_controller_id"] = id;
 
