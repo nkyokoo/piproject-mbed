@@ -60,4 +60,8 @@ int main(void) {
   socket.close();
   net.disconnect();
   */
+  while(true){
+   // printf("%f \n",temp.getTemp());
+    //ThisThread::sleep_for(5s);
+  }
 }
