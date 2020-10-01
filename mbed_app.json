@@ -2,7 +2,8 @@
     "target_overrides": {
         "*": {
             "platform.stdio-convert-newlines": true,
-            "target.network-default-interface-type": "ETHERNET"
+            "target.network-default-interface-type": "ETHERNET",
+            "target.printf_lib": "std"
         }
     }
 }

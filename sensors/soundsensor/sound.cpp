@@ -6,44 +6,36 @@
  *
  */
 
-#include "mbed.h"
-#include "LCD_DISCO_F746NG.h"
 #include "sound.h"
-#include "ProjectUtils.h"
+#include "LCD_DISCO_F746NG.h"
+#include "mbed.h"
 
-ProjectUtils util = ProjectUtils();
+AnalogIn sound(A1);
 
-AnalogIn sound(A2);
+SoundSensor::SoundSensor() {}
 
-SoundSensor::SoundSensor()
-{
-}
-
-void SoundSensor::runSensor()
-{ 
-
-    while (1)
-    {
-        globalDB = util.calculateSoundLevel(sound.read());
-        if (showing == true)
-        {
-            sprintf(text, "Sound: %f ", globalDB);
-
-            lcd.DisplayStringAt(0, LINE(6), (uint8_t *)text, CENTER_MODE);
-        }
-        ThisThread::sleep_for(5);
+void SoundSensor::runSensor() { 
+    float rawValue = sound.read(); 
+     resetSoundLevel();
+    
+    for(int i=0;i<1000;i++){
+        values[i] = rawValue * 3.3;
     }
+ 
+    for(int j=0;j<1000;j++){
+         sum += values[j];   
+    }
+    average = sum/1000;
+    globalSoundValue = decibels = average * 29;   
 }
-float SoundSensor::getSoundValue()
-{
 
-    float soundvalue = globalDB;
-
-    return soundvalue;
+float SoundSensor::getSoundValue() {
+  float soundValue = globalSoundValue;
+  printf("%f \n", soundValue);
+  return soundValue;
 }
-
-void SoundSensor::setShowing(bool passedBool)
-{
-
-    showing = passedBool;
+void SoundSensor::resetSoundLevel(){
+    sum = 0;
+    average = 0;
+    decibels = 0;
 }

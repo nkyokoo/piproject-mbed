@@ -1,4 +1,4 @@
- 
+
 /**
  * @file temperature.h
  * @author Valon
@@ -7,32 +7,32 @@
  *
  */
 
-#include "mbed.h"
 #include "LCD_DISCO_F746NG.h"
-
+#include "mbed.h"
+#include "EthernetInterface.h"
 
 
 class temperature {
 
-
 public:
-    /*
-     simple constructor
-    
-    **/
-    temperature();
-    /**
-     * runs the temperature sensor.
-     *    
-     */
-    void runSensor();
-    
-    float getTemp();
+  /*
+   simple constructor
+  
+  **/
+  temperature();
+  /**
+   * runs the temperature sensor.
+   *
+   */
+  void runSensor();
 
+  float getTemp();
 
 private:
-    LCD_DISCO_F746NG lcd;
-    float globalTemperature;
- 
-
+  float globalTemperature;
+  const int B = 4275;    // B value of the thermistor
+  const int R0 = 100000; // R0 = 100k
+  int previousTemp = 0;
+  SocketAddress a;
+  EthernetInterface net;
 };

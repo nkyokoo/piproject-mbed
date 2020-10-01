@@ -1,67 +1,138 @@
 #include "EthernetInterface.h"
 #include "LCD_DISCO_F746NG.h"
 #include "MbedJSONValue.h"
+#include "client.h"
+#include "lightsensor.h"
 #include "mbed.h"
 #include "mbed_trace.h"
+#include "sound.h"
 #include "temperature.h"
-
+#include <cmath>
 
 // Network interface
-//EthernetInterface net;
+EthernetInterface net;
 temperature temp = temperature();
+SoundSensor soundSensor = SoundSensor();
+LightSensor lightSensor = LightSensor();
+DigitalOut blueLamp(D4);
 
-void threadtemp() {
-     temp.runSensor(); 
-}
-int main(void) {
+int previousTemp = 0;
 
-  nsapi_size_or_error_t result;
-  LCD_DISCO_F746NG lcd;
-  Thread thread;
-  char text[30];
-/*  net.connect();
-  printf("mbed controller");
-
-  // Show the network address
-  SocketAddress a;
-  net.get_ip_address(&a);
-  printf("IP address: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
-  sprintf(text, "IP: %s", a.get_ip_address() ? a.get_ip_address() : "None");
-  lcd.DisplayStringAt(0, LINE(6), (uint8_t *)text, CENTER_MODE);
-
-  // Open a socket on the network interface
-  TCPSocket socket;
-  socket.open(&net);
-  a.set_ip_address("192.168.1.15");
-  a.set_port(2080);
-  result = socket.connect(a);
-  if (result < 0) {
-    printf("Error! socket->open() returned: %d\n", result);
-    return result;
+void threadTemp() {
+  printf("temperature thread started\n");
+  while (1) {
+    temp.runSensor();
   }
-  */ 
+}
+void threadSound() {
+  printf("sound thread started\n");
+  while (1) {
+    soundSensor.runSensor();
+  }
+}
+void threadLight() {
+  printf("light thread started\n");
+  while (1) {
+    lightSensor.runSensor();
+  }
+}
+void sendTempData(TCPSocket *socket) {
+  MbedJSONValue data;
+  int sendingTemp = round(temp.getTemp());
+  if (previousTemp != sendingTemp && previousTemp != 0) {
+    std::string s;
+    data["type"] = "temp";
+    data["value"] = sendingTemp;
+    data["room"] = "Z29A";
+    data["building"] = "MU8";
+    data["mbed_controller_id"] = "f746g@1";
 
-  thread.start(threadtemp);
+    // serialize it into a JSON string
+    s = data.serialize();
+    // Send json.
+    int scount = socket->send(s.c_str(), s.length());
+    printf("sent data \n");
 
-  // fill the object
- /*  MbedJSONValue data;
+    previousTemp = sendingTemp;
+    ThisThread::sleep_for(2s);
+  } else {
+    previousTemp = sendingTemp;
+  }
+}
+void sendSoundData(TCPSocket *socket) {
+  MbedJSONValue data;
   std::string s;
-  data["type"] = "temp";
-  data["value"] = temp.getTemp();
-  char id[30];   ½½½ 
-  sprintf(text, "f746g@%s", a.get_ip_address() ? a.get_ip_address() : "None");
-  data["mbed_controller_id"] = id;
+  data["type"] = "sound";
+  data["value"] = soundSensor.getSoundValue();
+  data["room"] = "Z29A";
+  data["building"] = "MU8";
+  data["mbed_controller_id"] = "f746g@1";
 
   // serialize it into a JSON string
   s = data.serialize();
   // Send json.
-  int scount = socket.send(s.c_str(), s.length());
-  printf("sent data");
-  socket.close();
-  net.disconnect();
-  */
- // while(true){
-   // printf("%f \n",temp.getTemp());
-    //ThisThread::sleep_for(5s);
-  //}
+  int scount = socket->send(s.c_str(), s.length());
+  printf("sent data \n");
+
+  ThisThread::sleep_for(2s);
+}
+void sendLightData(TCPSocket *socket) {
+  MbedJSONValue data;
+  std::string s;
+  data["type"] = "light";
+  data["value"] = lightSensor.getLightValue();
+  data["room"] = "Z29A";
+  data["building"] = "MU8";
+  data["mbed_controller_id"] = "f746g@1";
+
+  // serialize it into a JSON string
+  s = data.serialize();
+  // Send json.
+  int scount = socket->send(s.c_str(), s.length());
+  printf("sent data \n");
+
+  ThisThread::sleep_for(2s);
+}
+
+int main() {
+
+  bool isConnected;
+  LCD_DISCO_F746NG lcd;
+  Thread tempthread;
+  Thread soundThread;
+  Thread lightThread;
+  
+  char text[30];
+  SocketAddress a;
+  net.get_ip_address(&a);
+  net.connect();
+  printf("mbed controller \n");
+
+  // Open a socket on the network interface
+  printf("connecting to socket server \n");
+
+  TCPClient *tempClient = new TCPClient(&net, a);
+  TCPClient *lightClient = new TCPClient(&net, a);
+  TCPClient *soundClient = new TCPClient(&net, a);
+  if(tempClient->getStatus() < 0 && lightClient->getStatus() < 0 && soundClient->getStatus() < 0){
+      printf("could not connect");
+      isConnected = false;
+      return -1;
+  }else{
+      isConnected = true;
+      blueLamp.write(1);
+
+  }
+  printf("starting temp thread... \n");
+  tempthread.start(threadTemp);
+  printf("starting sound thread... \n");
+  soundThread.start(threadSound);
+  printf("starting light thread... \n");
+  lightThread.start(threadLight);
+
+  while (isConnected) {
+    sendTempData(tempClient->getSocket());
+    sendSoundData(soundClient->getSocket());
+    sendLightData(lightClient->getSocket());
+  }
 }

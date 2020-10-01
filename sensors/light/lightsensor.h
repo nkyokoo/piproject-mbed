@@ -33,19 +33,9 @@ class LightSensor{
      * @return Decibel as float
      */
       float getLightValue();
-    /**
-     * setter for showing
-     * sets the showing value.
-     * sets if the sensor is supposed to show it's reading to the display
-     * takes bool
-     * @param bool
-     */
-      void setShowing(bool passedBool);
     
      private: 
-         LCD_DISCO_F746NG lcd;
-         bool showing;
          float globalLux;
-         char text[30];
+        
     
     };
