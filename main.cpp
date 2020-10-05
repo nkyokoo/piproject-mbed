@@ -21,7 +21,7 @@ int previousTemp = 0;
 void threadTemp() {
   printf("temperature thread started\n");
   while (1) {
-    temp.runSensor();
+    temp.runSensor(); // runs read script
   }
 }
 void threadSound() {
@@ -36,6 +36,11 @@ void threadLight() {
     lightSensor.runSensor();
   }
 }
+/*
+* sends temperature data
+*
+*
+ */
 void sendTempData(TCPSocket *socket) {
   MbedJSONValue data;
   int sendingTemp = round(temp.getTemp());
@@ -47,8 +52,8 @@ void sendTempData(TCPSocket *socket) {
     data["building"] = "MU8";
     data["mbed_controller_id"] = "f746g@1";
 
-    // serialize it into a JSON string
-    s = data.serialize();
+    // serialize object into a JSON string
+    s = data.serialize(); 
     // Send json.
     int scount = socket->send(s.c_str(), s.length());
     printf("sent data \n");
@@ -68,7 +73,7 @@ void sendSoundData(TCPSocket *socket) {
   data["building"] = "MU8";
   data["mbed_controller_id"] = "f746g@1";
 
-  // serialize it into a JSON string
+  // serialize object into a JSON string
   s = data.serialize();
   // Send json.
   int scount = socket->send(s.c_str(), s.length());
@@ -85,7 +90,7 @@ void sendLightData(TCPSocket *socket) {
   data["building"] = "MU8";
   data["mbed_controller_id"] = "f746g@1";
 
-  // serialize it into a JSON string
+  // serialize object into a JSON string
   s = data.serialize();
   // Send json.
   int scount = socket->send(s.c_str(), s.length());
@@ -104,25 +109,28 @@ int main() {
   
   char text[30];
   SocketAddress a;
-  net.get_ip_address(&a);
-  net.connect();
+  net.get_ip_address(&a); // gets ip address from the ethernet card, doesn't get an ip if this is not run
+  net.connect(); // connects to the ethernet card
   printf("mbed controller \n");
 
   // Open a socket on the network interface
   printf("connecting to socket server \n");
 
+    // starts socket clients
   TCPClient *tempClient = new TCPClient(&net, a);
   TCPClient *lightClient = new TCPClient(&net, a);
   TCPClient *soundClient = new TCPClient(&net, a);
+  // checks the status from the clients to see if it's connected
   if(tempClient->getStatus() < 0 && lightClient->getStatus() < 0 && soundClient->getStatus() < 0){
       printf("could not connect");
-      isConnected = false;
+      isConnected = false; 
       return -1;
   }else{
-      isConnected = true;
+      isConnected = true; 
       blueLamp.write(1);
 
   }
+  // starting threads
   printf("starting temp thread... \n");
   tempthread.start(threadTemp);
   printf("starting sound thread... \n");
@@ -130,6 +138,7 @@ int main() {
   printf("starting light thread... \n");
   lightThread.start(threadLight);
 
+//while client connected it send data
   while (isConnected) {
     sendTempData(tempClient->getSocket());
     sendSoundData(soundClient->getSocket());
