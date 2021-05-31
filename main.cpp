@@ -59,7 +59,7 @@ void sendTempData(TCPSocket *socket) {
     printf("sent data \n");
 
     previousTemp = sendingTemp;
-    ThisThread::sleep_for(2s);
+    ThisThread::sleep_for(60s);
   } else {
     previousTemp = sendingTemp;
   }
@@ -79,7 +79,7 @@ void sendSoundData(TCPSocket *socket) {
   int scount = socket->send(s.c_str(), s.length());
   printf("sent data \n");
 
-  ThisThread::sleep_for(2s);
+  ThisThread::sleep_for(60s);
 }
 void sendLightData(TCPSocket *socket) {
   MbedJSONValue data;
@@ -96,7 +96,7 @@ void sendLightData(TCPSocket *socket) {
   int scount = socket->send(s.c_str(), s.length());
   printf("sent data \n");
 
-  ThisThread::sleep_for(2s);
+  ThisThread::sleep_for(60s);
 }
 
 int main() {
@@ -140,8 +140,14 @@ int main() {
 
 //while client connected it send data
   while (isConnected) {
+  
     sendTempData(tempClient->getSocket());
-    sendSoundData(soundClient->getSocket());
-    sendLightData(lightClient->getSocket());
+    if(round(soundSensor.getSoundValue()) != 0){
+       sendSoundData(soundClient->getSocket());
+
+    }
+    if(lightSensor.getLightValue() != 0){
+      sendLightData(lightClient->getSocket());
+    }
   }
 }
